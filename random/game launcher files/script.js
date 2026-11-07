@@ -1,4 +1,3 @@
-
 const API = "https://api.github.com/repos/dmrman12345/project-w4gv5";
 
 const CACHE_NAME = "slope-plus-files-v1";
@@ -24,7 +23,11 @@ const playSlopeButton = document.getElementById("playSlope");
 const playTinyFishingButton = document.getElementById("playTinyFishing");
 
 const backButton = document.getElementById("backButton");
-const clearCacheButton = document.getElementById("clearCacheButton");
+
+const clearSlopeDataButton = document.getElementById("clearSlopeData");
+const deleteSlopeFilesButton = document.getElementById("deleteSlopeFiles");
+const clearTinyDataButton = document.getElementById("clearTinyData");
+const deleteTinyFilesButton = document.getElementById("deleteTinyFiles");
 
 let slopeRedirects = {};
 let xhrRedirects = {};
@@ -151,7 +154,10 @@ async function cachedFetch(url, options = {}, cacheName = CACHE_NAME) {
 
   console.log("[GAME CACHE] Downloading:", url);
 
-  const response = await fetch(url, options);
+  const response = await fetch(url, {
+    ...options,
+    cache: "no-store"
+  });
 
   if (!response.ok) {
     throw new Error(
@@ -473,116 +479,131 @@ function patchAudioWorklet() {
 
 
 // ------------------------------------------------------------
-// CLEAR GAME CACHE
+// PER-GAME DATA AND FILE CONTROLS
 // ------------------------------------------------------------
 
-async function clearGameCache() {
-  if (clearCacheButton.disabled) return;
+// Tiny Fishing's save key is defined in its cookie manager script.
+// Slope Plus uses the Unity WebGL PlayerPrefs key derived from its build config.
+const TINY_SAVE_KEY = "TinyFishingCoolmathSave";
+const SLOPE_SAVE_KEY = "unity.playerprefs.Slope Plus.Slope Plus";
 
-  clearCacheButton.disabled = true;
-  const originalButtonText = clearCacheButton.textContent;
-  clearCacheButton.textContent = "Clearing...";
-  status("Clearing saved game files...");
+function getGameCachePrefixes(game) {
+  return game === "tiny" ? ["tiny-fishing-files-"] : ["slope-plus-files-"];
+}
+
+
+async function deleteGameFiles(game) {
+  const button = game === "tiny" ? deleteTinyFilesButton : deleteSlopeFilesButton;
+  if (!button || button.disabled) return;
+
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = "Deleting...";
 
   try {
-    // Clear only caches belonging to this game hub. This also catches older
-    // versioned cache names (for example tiny-fishing-files-v4).
-    if (!window.caches || typeof window.caches.keys !== "function") {
-      throw new Error("This browser preview does not provide Cache Storage.");
+    if (!("caches" in window)) {
+      throw new Error("This browser preview does not support Cache Storage.");
     }
 
-    const cacheNames = await window.caches.keys();
-    const gameCacheNames = cacheNames.filter(name =>
-      name === CACHE_NAME ||
-      name === TINY_CACHE_NAME ||
-      name.startsWith("slope-plus-files-") ||
-      name.startsWith("tiny-fishing-files-")
+    const prefixes = getGameCachePrefixes(game);
+    const names = await caches.keys();
+
+    const matching = names.filter(name =>
+      prefixes.some(prefix => name === prefix || name.startsWith(prefix))
     );
 
-    let deletedCount = 0;
-    const failedDeletes = [];
+    let deleted = 0;
 
-    for (const cacheName of gameCacheNames) {
-      const deleted = await window.caches.delete(cacheName);
-      if (deleted) {
-        deletedCount++;
-      } else {
-        console.warn("[GAME CACHE] Cache was not deleted:", cacheName);
+    for (const name of matching) {
+      if (await caches.delete(name)) deleted++;
+    }
+
+    if (game === "tiny") {
+      tinyMemoryCache.clear();
+
+      for (const objectURL of tinyAssetObjectURLs.values()) {
+        URL.revokeObjectURL(objectURL);
       }
-    }
 
-    // Verify that no game cache remains.
-    const remainingNames = await window.caches.keys();
+      tinyAssetObjectURLs.clear();
 
-    for (const cacheName of remainingNames) {
-      if (
-        cacheName === CACHE_NAME ||
-        cacheName === TINY_CACHE_NAME ||
-        cacheName.startsWith("slope-plus-files-") ||
-        cacheName.startsWith("tiny-fishing-files-")
-      ) {
-        failedDeletes.push(cacheName);
+      if (tinyNoopScriptURL) {
+        URL.revokeObjectURL(tinyNoopScriptURL);
+        tinyNoopScriptURL = null;
       }
+
+      tinyBlobUrls.clear();
+      tinyLoadedSupportScripts.clear();
+      window.tinyFishingFileMap = null;
+      xhrRedirects = {};
+
+    } else {
+      slopeRedirects = {};
     }
 
-    if (failedDeletes.length) {
-      throw new Error(
-        "Could not delete these game caches: " +
-        failedDeletes.join(", ")
-      );
-    }
-
-    // Clear Tiny Fishing's in-memory copies.
-    tinyMemoryCache.clear();
-
-    // Revoke all generated asset URLs.
-    for (const objectURL of tinyAssetObjectURLs.values()) {
-      URL.revokeObjectURL(objectURL);
-    }
-
-    tinyAssetObjectURLs.clear();
-
-    if (tinyNoopScriptURL) {
-      URL.revokeObjectURL(tinyNoopScriptURL);
-      tinyNoopScriptURL = null;
-    }
-
-    // Clear script and routing references.
-    tinyBlobUrls.clear();
-    tinyLoadedSupportScripts.clear();
-
-    window.tinyFishingFileMap = null;
-
-    xhrRedirects = {};
-    slopeRedirects = {};
-
-    status(
-      "Game cache cleared. Deleted " +
-      deletedCount +
-      " saved cache(s). Reloading..."
+    alert(
+      (game === "tiny" ? "Tiny Fishing" : "Slope Plus") +
+      " game files deleted. " +
+      deleted +
+      " cached file group(s) removed. The game will download fresh copies next time."
     );
-
-    clearCacheButton.textContent = "Reloading...";
-
-    // Reload to reset scripts and all remaining in-memory game state.
-    window.setTimeout(() => {
-      window.location.reload();
-    }, 600);
 
   } catch (error) {
-    console.error("[CACHE ERROR]", error);
+    console.error("[DELETE GAME FILES]", error);
+    alert("Could not delete game files: " + error.message);
 
-    status(
-      "Could not clear game cache: " +
-      (error && error.message ? error.message : String(error))
-    );
-
-    clearCacheButton.disabled = false;
-    clearCacheButton.textContent = originalButtonText || "Clear Cache";
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText;
   }
 }
 
-clearCacheButton.addEventListener("click", clearGameCache);
+
+function clearGameData(game) {
+  const button = game === "tiny" ? clearTinyDataButton : clearSlopeDataButton;
+  if (!button || button.disabled) return;
+
+  const gameName = game === "tiny" ? "Tiny Fishing" : "Slope Plus";
+  const saveKey = game === "tiny" ? TINY_SAVE_KEY : SLOPE_SAVE_KEY;
+
+  if (!confirm(
+    "Clear " + gameName +
+    " progress? This resets saved progress and cannot be undone."
+  )) return;
+
+  try {
+    const hadSave = localStorage.getItem(saveKey) !== null;
+
+    localStorage.removeItem(saveKey);
+
+    if (game === "tiny") {
+      alert(
+        hadSave
+          ? "Tiny Fishing save data cleared. Reloading the game hub..."
+          : "No Tiny Fishing save data was found. Reloading the game hub..."
+      );
+
+    } else {
+      alert(
+        hadSave
+          ? "Slope Plus PlayerPrefs data cleared. Reloading the game hub..."
+          : "No Slope Plus PlayerPrefs save key was found. Other Unity save storage, if used by this build, has not been touched. Reloading the game hub..."
+      );
+    }
+
+    window.location.reload();
+
+  } catch (error) {
+    console.error("[CLEAR GAME DATA]", error);
+    alert("Could not clear " + gameName + " data: " + error.message);
+  }
+}
+
+
+clearSlopeDataButton.addEventListener("click", () => clearGameData("slope"));
+deleteSlopeFilesButton.addEventListener("click", () => deleteGameFiles("slope"));
+clearTinyDataButton.addEventListener("click", () => clearGameData("tiny"));
+deleteTinyFilesButton.addEventListener("click", () => deleteGameFiles("tiny"));
 
 
 // ------------------------------------------------------------
@@ -699,20 +720,28 @@ function tinyRelativePathFromURL(value) {
 
     if (markerIndex !== -1) {
       candidate = parsed.pathname.slice(markerIndex + marker.length);
+
     } else if (parsed.origin === new URL(TINY_RAW_BASE).origin) {
       candidate = parsed.pathname.replace(/^\/+/, "");
 
       if (candidate.startsWith("main/random/TinyFishing/")) {
         candidate = candidate.slice("main/random/TinyFishing/".length);
       }
+
     } else {
       return null;
     }
+
   } catch (error) {
     candidate = value.split("?")[0].split("#")[0];
   }
 
   candidate = candidate.replace(/^\/+/, "");
+
+  // GameMaker can request the localization CSV without its directory.
+  if (candidate === "trads.csv") {
+    candidate = "html5game/trads.csv";
+  }
 
   if (candidate.startsWith(TINY_BASE)) {
     candidate = candidate.slice(TINY_BASE.length);
@@ -1238,6 +1267,7 @@ async function preloadTinyFiles(tinyFiles) {
         );
 
         const response = await fetch(item.url, {
+          cache: "no-store",
           headers: {
             Accept: "application/vnd.github.raw+json"
           }
