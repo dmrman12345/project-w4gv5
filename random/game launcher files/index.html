@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,42 +8,43 @@
 </head>
 <body>
 
-  <!-- GAME MENU -->
   <div id="menu">
     <h1>Games</h1>
 
     <div class="game-list">
       <div class="game-card">
-        <div>
+        <div class="game-card-info">
           <h2>Slope Plus</h2>
           <p>Unity · Browser game</p>
         </div>
-
-        <button id="playSlope">Play</button>
+        <div class="game-card-actions">
+          <button id="playSlope">Play</button>
+          <button id="clearSlopeData" class="utility-button">Clear Game Data</button>
+          <button id="deleteSlopeFiles" class="danger-button">Delete Game Files</button>
+        </div>
       </div>
 
       <div class="game-card">
-        <div>
+        <div class="game-card-info">
           <h2>Tiny Fishing</h2>
           <p>GameMaker · Browser game</p>
         </div>
-
-        <button id="playTinyFishing">Play</button>
+        <div class="game-card-actions">
+          <button id="playTinyFishing">Play</button>
+          <button id="clearTinyData" class="utility-button">Clear Game Data</button>
+          <button id="deleteTinyFiles" class="danger-button">Delete Game Files</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- GAME VIEW -->
   <div id="gameView" class="hidden">
-
     <div id="gameControls">
       <button id="backButton">Back</button>
-      <button id="clearCacheButton">Clear Cache</button>
     </div>
 
     <div id="status">Preparing Slope Plus...</div>
     <div id="gameContainer"></div>
-
   </div>
 
   <script src="script.js"></script>
