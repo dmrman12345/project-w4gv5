@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Games</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- GAME MENU -->
+  <div id="menu">
+    <h1>Games</h1>
+
+    <div class="game-list">
+      <div class="game-card">
+        <div>
+          <h2>Slope Plus</h2>
+          <p>Unity · Browser game</p>
+        </div>
+
+        <button id="playSlope">Play</button>
+      </div>
+
+      <div class="game-card">
+        <div>
+          <h2>Tiny Fishing</h2>
+          <p>GameMaker · Browser game</p>
+        </div>
+
+        <button id="playTinyFishing">Play</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME VIEW -->
+  <div id="gameView" class="hidden">
+
+    <div id="gameControls">
+      <button id="backButton">Back</button>
+      <button id="clearCacheButton">Clear Cache</button>
+    </div>
+
+    <div id="status">Preparing Slope Plus...</div>
+    <div id="gameContainer"></div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
