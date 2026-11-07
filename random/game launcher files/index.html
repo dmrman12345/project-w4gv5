@@ -38,6 +38,23 @@
     </div>
   </div>
 
+
+  <div id="deleteWarning" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="deleteWarningTitle">
+    <div class="confirmation-modal">
+      <h2 id="deleteWarningTitle">Delete Game Files?</h2>
+      <p id="deleteWarningGame">Are you sure you want to delete this game's downloaded files?</p>
+      <ul>
+        <li>Downloaded game files will be removed.</li>
+        <li>The game will download fresh files next time you play.</li>
+        <li>Your saved progress will <strong>not</strong> be deleted.</li>
+      </ul>
+      <div class="modal-actions">
+        <button id="cancelDeleteFiles" class="utility-button">Cancel</button>
+        <button id="confirmDeleteFiles" class="danger-button">Delete Files</button>
+      </div>
+    </div>
+  </div>
+
   <div id="gameView" class="hidden">
     <div id="gameControls">
       <button id="backButton">Back</button>
