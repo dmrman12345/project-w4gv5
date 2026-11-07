@@ -1395,6 +1395,13 @@ async function startTinyFishing() {
       const blobURL = API + "/git/blobs/" + file.sha;
 
       redirects[relativePath] = blobURL;
+
+      // Fallback: GameMaker may request the translation file
+      // using only "trads.csv" instead of "html5game/trads.csv".
+      if (relativePath === "html5game/trads.csv") {
+        redirects["trads.csv"] = blobURL;
+      }
+
       tinyBlobUrls.add(blobURL);
     }
 
