@@ -36,6 +36,8 @@ let tinyMemoryCache = new Map();
 let tinyAssetObjectURLs = new Map();
 let tinyLoadedSupportScripts = new Set();
 let tinyNoopScriptURL = null;
+let tinyTranslationCSV = null;
+let tinyOriginalFileReader = null;
 
 let xhrPatched = false;
 let audioWorkletPatched = false;
@@ -1442,6 +1444,9 @@ async function startTinyFishing() {
 
     await preloadTinyFiles(tinyFiles);
 
+    // Load the localization CSV before GameMaker initializes.
+    tinyTranslationCSV = await getTinyFileText("html5game/trads.csv");
+
     status("Preparing Tiny Fishing...");
 
     patchTinyImageLoading();
@@ -1483,6 +1488,30 @@ async function startTinyFishing() {
     }
 
     await injectTinyScript(gameCode, "engine");
+
+    // GameMaker reads included text files through its internal synchronous reader.
+    // Serve the already-downloaded CSV directly instead of relying on a browser request.
+    if (typeof window._xl === "function" && typeof tinyTranslationCSV === "string") {
+      tinyOriginalFileReader = window._xl;
+
+      window._xl = function(filename, localOnly) {
+        const normalized = String(filename || "")
+          .replace(/\\/g, "/")
+          .split("/")
+          .pop()
+          .toLowerCase();
+
+        if (normalized === "trads.csv") {
+          return tinyTranslationCSV;
+        }
+
+        return tinyOriginalFileReader.apply(this, arguments);
+      };
+
+      console.log("[TINY FISHING] Registered trads.csv with GameMaker's file reader.");
+    } else {
+      throw new Error("Could not register trads.csv with GameMaker's file reader.");
+    }
 
     if (typeof window.GameMaker_Init !== "function") {
       throw new Error("GameMaker_Init was not found.");
