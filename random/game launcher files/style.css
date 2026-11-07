@@ -15,6 +15,9 @@ html, body {
   padding: 30px;
   max-width: 700px;
   margin: auto;
+  max-height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 #menu h1 {
@@ -37,6 +40,20 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.game-card-info {
+  min-width: 130px;
+}
+
+.game-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .game-card h2 {
@@ -70,6 +87,27 @@ button:disabled {
   cursor: wait;
 }
 
+.utility-button {
+  background: #292f3a;
+  border-color: #46536a;
+}
+
+.danger-button {
+  background: #382323;
+  border-color: #704040;
+}
+
+.danger-button:hover {
+  background: #503030;
+}
+
+@media (max-width: 620px) {
+  .game-card-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
+
 /* GAME VIEW */
 
 .hidden {
@@ -85,15 +123,7 @@ button:disabled {
   position: fixed;
   top: 10px;
   left: 10px;
-  right: 10px;
   z-index: 999999;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-}
-
-#gameControls button {
-  pointer-events: auto;
 }
 
 #gameContainer {
