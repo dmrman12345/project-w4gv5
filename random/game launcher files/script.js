@@ -602,10 +602,55 @@ function clearGameData(game) {
 }
 
 
+const deleteWarning = document.getElementById("deleteWarning");
+const deleteWarningTitle = document.getElementById("deleteWarningTitle");
+const deleteWarningGame = document.getElementById("deleteWarningGame");
+const cancelDeleteButton = document.getElementById("cancelDeleteFiles");
+const confirmDeleteButton = document.getElementById("confirmDeleteFiles");
+
+let pendingDeleteGame = null;
+
+function openDeleteWarning(game) {
+  pendingDeleteGame = game;
+  const gameName = game === "tiny" ? "Tiny Fishing" : "Slope Plus";
+
+  deleteWarningTitle.textContent = "Delete Game Files?";
+  deleteWarningGame.textContent =
+    "Are you sure you want to delete " + gameName + "'s downloaded files?";
+
+  deleteWarning.classList.remove("hidden");
+  cancelDeleteButton.focus();
+}
+
+function closeDeleteWarning() {
+  deleteWarning.classList.add("hidden");
+  pendingDeleteGame = null;
+}
+
 clearSlopeDataButton.addEventListener("click", () => clearGameData("slope"));
-deleteSlopeFilesButton.addEventListener("click", () => deleteGameFiles("slope"));
+deleteSlopeFilesButton.addEventListener("click", () => openDeleteWarning("slope"));
 clearTinyDataButton.addEventListener("click", () => clearGameData("tiny"));
-deleteTinyFilesButton.addEventListener("click", () => deleteGameFiles("tiny"));
+deleteTinyFilesButton.addEventListener("click", () => openDeleteWarning("tiny"));
+
+cancelDeleteButton.addEventListener("click", closeDeleteWarning);
+
+confirmDeleteButton.addEventListener("click", async () => {
+  const game = pendingDeleteGame;
+  if (!game) return;
+
+  closeDeleteWarning();
+  await deleteGameFiles(game);
+});
+
+deleteWarning.addEventListener("click", event => {
+  if (event.target === deleteWarning) closeDeleteWarning();
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !deleteWarning.classList.contains("hidden")) {
+    closeDeleteWarning();
+  }
+});
 
 
 // ------------------------------------------------------------
