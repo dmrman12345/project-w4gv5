@@ -1,40 +1,5 @@
 const API = "https://api.github.com/repos/dmrman12345/project-w4gv5";
 
-// Suppress only Code.org's repeated Tiny Fishing canvas-position warning.
-// Code.org may install its console-forwarding wrapper after this script starts,
-// so use an accessor to keep the filter in front of any later console.warn replacement.
-const canvasPositionWarning = "Canvas position fixed. Ignoring position alterations.";
-const wrapConsoleWarn = method => function(...args) {
-  if (args.some(arg =>
-    typeof arg === "string" && arg.includes(canvasPositionWarning)
-  )) {
-    return;
-  }
-
-  return method.apply(console, args);
-};
-
-let filteredConsoleWarn = wrapConsoleWarn(console.warn);
-try {
-  Object.defineProperty(console, "warn", {
-    configurable: true,
-    enumerable: true,
-    get() {
-      return filteredConsoleWarn;
-    },
-    set(nextMethod) {
-      if (typeof nextMethod === "function") {
-        filteredConsoleWarn = wrapConsoleWarn(nextMethod);
-      } else {
-        filteredConsoleWarn = nextMethod;
-      }
-    }
-  });
-} catch (error) {
-  // Fallback for environments where console.warn cannot be redefined.
-  console.warn = filteredConsoleWarn;
-}
-
 const CACHE_NAME = "slope-plus-files-v1";
 const TINY_CACHE_NAME = "tiny-fishing-files-v5";
 
@@ -1035,6 +1000,47 @@ window.js_sdkm_show_ad = js_sdkm_show_ad;
 // CREATE TINY FISHING DOM
 // ------------------------------------------------------------
 
+function installTinyCanvasPositionGuard(canvas) {
+  if (!canvas || canvas.dataset.tinyPositionGuard === "true") return;
+
+  canvas.dataset.tinyPositionGuard = "true";
+
+  const canvasStyle = canvas.style;
+  const originalPosition = canvasStyle.getPropertyValue("position");
+  const originalSetProperty = canvasStyle.setProperty.bind(canvasStyle);
+  const originalRemoveProperty = canvasStyle.removeProperty.bind(canvasStyle);
+
+  // Code.org locks the game canvas position. Ignore GameMaker attempts to
+  // change it before they reach Code.org's warning-producing style handler.
+  try {
+    Object.defineProperty(canvasStyle, "position", {
+      configurable: true,
+      enumerable: true,
+      get() {
+        return originalPosition;
+      },
+      set() {
+        // Keep the original canvas position unchanged.
+      }
+    });
+
+    canvasStyle.setProperty = function(name, value, priority) {
+      if (String(name).toLowerCase() === "position") return;
+      return originalSetProperty(name, value, priority);
+    };
+
+    canvasStyle.removeProperty = function(name) {
+      if (String(name).toLowerCase() === "position") return originalPosition;
+      return originalRemoveProperty(name);
+    };
+  } catch (error) {
+    // If this browser does not allow a canvas-local style guard, leave the
+    // original canvas behavior untouched rather than breaking the game.
+    canvas.dataset.tinyPositionGuard = "unavailable";
+  }
+}
+
+
 function createTinyFishingDOM() {
   const root = document.createElement("div");
 
@@ -1069,6 +1075,8 @@ function createTinyFishingDOM() {
   canvas.id = "canvas";
   canvas.width = 0;
   canvas.height = 0;
+
+  installTinyCanvasPositionGuard(canvas);
 
   canvas.style.cssText = `
     display: block;
