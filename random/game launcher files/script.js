@@ -1,18 +1,39 @@
 const API = "https://api.github.com/repos/dmrman12345/project-w4gv5";
 
-// Code.org's preview warns when the game engine tries to reposition its canvas.
-// Suppress only this known preview warning; leave all other console warnings visible.
-const originalConsoleWarn = console.warn.bind(console);
-console.warn = (...args) => {
+// Suppress only Code.org's repeated Tiny Fishing canvas-position warning.
+// Code.org may install its console-forwarding wrapper after this script starts,
+// so use an accessor to keep the filter in front of any later console.warn replacement.
+const canvasPositionWarning = "Canvas position fixed. Ignoring position alterations.";
+const wrapConsoleWarn = method => function(...args) {
   if (args.some(arg =>
-    typeof arg === "string" &&
-    arg.includes("Canvas position fixed. Ignoring position alterations.")
+    typeof arg === "string" && arg.includes(canvasPositionWarning)
   )) {
     return;
   }
 
-  originalConsoleWarn(...args);
+  return method.apply(console, args);
 };
+
+let filteredConsoleWarn = wrapConsoleWarn(console.warn);
+try {
+  Object.defineProperty(console, "warn", {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return filteredConsoleWarn;
+    },
+    set(nextMethod) {
+      if (typeof nextMethod === "function") {
+        filteredConsoleWarn = wrapConsoleWarn(nextMethod);
+      } else {
+        filteredConsoleWarn = nextMethod;
+      }
+    }
+  });
+} catch (error) {
+  // Fallback for environments where console.warn cannot be redefined.
+  console.warn = filteredConsoleWarn;
+}
 
 const CACHE_NAME = "slope-plus-files-v1";
 const TINY_CACHE_NAME = "tiny-fishing-files-v5";
