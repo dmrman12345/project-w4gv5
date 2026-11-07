@@ -24,9 +24,7 @@ const playTinyFishingButton = document.getElementById("playTinyFishing");
 
 const backButton = document.getElementById("backButton");
 
-const clearSlopeDataButton = document.getElementById("clearSlopeData");
 const deleteSlopeFilesButton = document.getElementById("deleteSlopeFiles");
-const clearTinyDataButton = document.getElementById("clearTinyData");
 const deleteTinyFilesButton = document.getElementById("deleteTinyFiles");
 
 let slopeRedirects = {};
@@ -484,11 +482,6 @@ function patchAudioWorklet() {
 // PER-GAME DATA AND FILE CONTROLS
 // ------------------------------------------------------------
 
-// Tiny Fishing's save key is defined in its cookie manager script.
-// Slope Plus uses the Unity WebGL PlayerPrefs key derived from its build config.
-const TINY_SAVE_KEY = "TinyFishingCoolmathSave";
-const SLOPE_SAVE_KEY = "unity.playerprefs.Slope Plus.Slope Plus";
-
 function getGameCachePrefixes(game) {
   return game === "tiny" ? ["tiny-fishing-files-"] : ["slope-plus-files-"];
 }
@@ -561,46 +554,6 @@ async function deleteGameFiles(game) {
 }
 
 
-function clearGameData(game) {
-  const button = game === "tiny" ? clearTinyDataButton : clearSlopeDataButton;
-  if (!button || button.disabled) return;
-
-  const gameName = game === "tiny" ? "Tiny Fishing" : "Slope Plus";
-  const saveKey = game === "tiny" ? TINY_SAVE_KEY : SLOPE_SAVE_KEY;
-
-  if (!confirm(
-    "Clear " + gameName +
-    " progress? This resets saved progress and cannot be undone."
-  )) return;
-
-  try {
-    const hadSave = localStorage.getItem(saveKey) !== null;
-
-    localStorage.removeItem(saveKey);
-
-    if (game === "tiny") {
-      alert(
-        hadSave
-          ? "Tiny Fishing save data cleared. Reloading the game hub..."
-          : "No Tiny Fishing save data was found. Reloading the game hub..."
-      );
-
-    } else {
-      alert(
-        hadSave
-          ? "Slope Plus PlayerPrefs data cleared. Reloading the game hub..."
-          : "No Slope Plus PlayerPrefs save key was found. Other Unity save storage, if used by this build, has not been touched. Reloading the game hub..."
-      );
-    }
-
-    window.location.reload();
-
-  } catch (error) {
-    console.error("[CLEAR GAME DATA]", error);
-    alert("Could not clear " + gameName + " data: " + error.message);
-  }
-}
-
 
 const deleteWarning = document.getElementById("deleteWarning");
 const deleteWarningTitle = document.getElementById("deleteWarningTitle");
@@ -627,9 +580,7 @@ function closeDeleteWarning() {
   pendingDeleteGame = null;
 }
 
-clearSlopeDataButton.addEventListener("click", () => clearGameData("slope"));
 deleteSlopeFilesButton.addEventListener("click", () => openDeleteWarning("slope"));
-clearTinyDataButton.addEventListener("click", () => clearGameData("tiny"));
 deleteTinyFilesButton.addEventListener("click", () => openDeleteWarning("tiny"));
 
 cancelDeleteButton.addEventListener("click", closeDeleteWarning);
