@@ -1,0 +1,123 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #111;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+/* GAME MENU */
+
+#menu {
+  padding: 30px;
+  max-width: 700px;
+  margin: auto;
+}
+
+#menu h1 {
+  font-size: 28px;
+  font-weight: normal;
+  margin-bottom: 25px;
+}
+
+.game-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.game-card {
+  background: #1d1d1d;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-card h2 {
+  font-size: 17px;
+  margin: 0 0 6px;
+  font-weight: normal;
+}
+
+.game-card p {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+
+button {
+  background: #303030;
+  color: white;
+  border: 1px solid #484848;
+  border-radius: 4px;
+  padding: 8px 15px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+button:hover {
+  background: #414141;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+/* GAME VIEW */
+
+.hidden {
+  display: none !important;
+}
+
+#gameView {
+  width: 100%;
+  height: 100%;
+}
+
+#gameControls {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 999999;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+#gameControls button {
+  pointer-events: auto;
+}
+
+#gameContainer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#gameContainer canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+#status {
+  position: fixed;
+  z-index: 1000000;
+  top: 55px;
+  left: 10px;
+  padding: 8px 11px;
+  color: white;
+  background: #222;
+  border-radius: 4px;
+  font-size: 13px;
+}
