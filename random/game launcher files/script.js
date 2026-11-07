@@ -1,5 +1,19 @@
 const API = "https://api.github.com/repos/dmrman12345/project-w4gv5";
 
+// Code.org's preview warns when the game engine tries to reposition its canvas.
+// Suppress only this known preview warning; leave all other console warnings visible.
+const originalConsoleWarn = console.warn.bind(console);
+console.warn = (...args) => {
+  if (args.some(arg =>
+    typeof arg === "string" &&
+    arg.includes("Canvas position fixed. Ignoring position alterations.")
+  )) {
+    return;
+  }
+
+  originalConsoleWarn(...args);
+};
+
 const CACHE_NAME = "slope-plus-files-v1";
 const TINY_CACHE_NAME = "tiny-fishing-files-v5";
 
